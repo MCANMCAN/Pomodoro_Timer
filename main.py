@@ -1,11 +1,7 @@
-from cgitb import text
-from math import floor
-from tabnanny import check
 from tkinter import *
-from tkinter import font
-from turtle import bgcolor, title
-import time
-from numpy import pad
+from math import floor
+from playsound import playsound
+
 # ---------------------------- CONSTANTS ------------------------------- #
 PINK = "#e2979c"
 RED = "#e7305b"
@@ -15,23 +11,41 @@ FONT_NAME = "Courier"
 WORK_MIN = 25
 SHORT_BREAK_MIN = 5
 LONG_BREAK_MIN = 20
-check_mark = "✔"
+CHECK_MARK = "✔"
 CYCLE=0
+TIMER = None
 
 # ---------------------------- TIMER RESET ------------------------------- # 
+def play() :
+    playsound("notification.mp3")
 def reseted(): 
-    canvas.itemconfig(counter_label,text="5" )
-# ---------------------------- TIMER MECHANISM ------------------------------- # 
+    window.after_cancel(TIMER)
+    canvas.itemconfig(counter_label,text=f"25:00",fill="PINK")
+    global CYCLE 
+    CYCLE = 0 
+    check_mark.config(text="")
+# TIMER MECHANISM  # 
 def started(): 
     global CYCLE 
     CYCLE +=1
-    #Timer devam etmeli . 
-    if CYCLE !=1 and CYCLE % 2 == 0 : 
+    print(CYCLE)
+    #Timer devam etmeli .
+    if CYCLE == 5 : 
+        counter(4*60)  
+        canvas.itemconfigure(counter_label, fill=RED)
+        title_label.configure(text="LONG REST",fg=RED)
+    elif CYCLE !=1 and CYCLE % 2 == 0 : 
         counter(1*60) 
+        canvas.itemconfigure(counter_label, fill=GREEN)
+        title_label.configure(text="REST",fg=GREEN)
+        mark_str = int(CYCLE/2)*CHECK_MARK
+        check_mark.config(text=mark_str)
     elif CYCLE == 1 or CYCLE % 2 == 1 : 
-        counter(2*60)      
+        counter(1*60) 
+        canvas.itemconfigure(counter_label, fill=PINK) 
+        title_label.configure(text="CONCENTRATE",fg=PINK)    
     #counter(25 * 60)
-# ---------------------------- COUNTDOWN MECHANISM ------------------------------- # 
+# COUNTDOWN MECHANISM # 
 def counter(count) : 
     mn= floor(count/60)
     sc= count % 60 
@@ -43,12 +57,21 @@ def counter(count) :
             mn = mn-1
     canvas.itemconfig(counter_label,text=f"{mn}:{sc}", )
     if count > 0 :
-      window.after(1000 , counter , count - 1)
-# ---------------------------- UI SETUP ------------------------------- #
+      global TIMER
+      TIMER = window.after(1000 , counter , count - 1)
+    elif count == 0:
+      play()
+      print("hımm")
+      started()
+      
+          
+
+          
+
+# UI SETUP  #
 window = Tk()
 window.title("Promodoro")
 window.config(padx=35,pady=50)
-
 canvas = Canvas(width=512,height=512)
 coffee = PhotoImage(file="hard-work.png")
 canvas.create_image(250,250, image=coffee)
@@ -63,7 +86,7 @@ reset.grid(row=0,column=3)
 title_label = Label(text="TIMER", font=(FONT_NAME, 35, "bold"),fg=GREEN)
 title_label.grid(row=0,column=1)
 
-check_mark= Label(text=check_mark ,font=(FONT_NAME, 15, "bold") ,  fg=GREEN )
+check_mark= Label(font=(FONT_NAME, 15, "bold") ,  fg=GREEN )
 check_mark.grid(column=1,row=2)
 
 
